@@ -1,0 +1,4 @@
+xvlog ./led_blink.v ./tb_led_blink.v
+xelab tb_led_blink -debug wave -s tb_led_blink
+#xsim tb_led_blink -R  # do not check waveform
+xsim tb_led_blink -gui -wdb simulate_xsim_tb_led_blink.wdb 
