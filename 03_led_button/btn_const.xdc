@@ -1,0 +1,15 @@
+set_property PACKAGE_PIN J21 [get_ports {btn[0]}]
+set_property PACKAGE_PIN E13 [get_ports {btn[1]}]
+set_property PACKAGE_PIN B13 [get_ports {led[0]}]
+set_property PACKAGE_PIN C13 [get_ports {led[1]}]
+set_property PACKAGE_PIN R4 [get_ports clk_p]
+set_property PACKAGE_PIN T4 [get_ports clk_n]
+
+set_property IOSTANDARD LVCMOS33 [get_ports {btn[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {btn[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {led[1]}]
+set_property IOSTANDARD DIFF_SSTL15 [get_ports clk_p]
+set_property IOSTANDARD DIFF_SSTL15 [get_ports clk_n]
+
+create_clock -period 5.000 -name clk_p -waveform {0.000 2.500} [get_ports clk_p]
