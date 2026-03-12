@@ -25,10 +25,10 @@ module led_blink_3(
     input sys_clk_p,        // 200MHz Positive clock
     input sys_clk_n,        // 200MHz Negative clock
     input rst_n,    // Reset button
-    (* mark_debug = "true" *) output reg [3:0] led    // output leds
+    output reg [3:0] led    // output leds
     );
     wire  sys_clk;  // buffer output
-    (* mark_debug = "true" *) reg[31:0] timer_cnt;    // Define Local variable (32 bit counter)
+    reg[31:0] timer_cnt;    // Define Local variable (32 bit counter)
 
     // Change 차동 클락 -> 단일 클락
     IBUFDS clk_inst (
@@ -56,4 +56,12 @@ begin
         timer_cnt <= timer_cnt + 32'd1; // Increase 1 count
     end
 end
+
+ila_0 ila (
+	.clk(sys_clk), // input wire clk
+
+
+	.probe0(timer_cnt), // input wire [31:0]  probe0  
+	.probe1(led) // input wire [3:0]  probe1
+);
 endmodule
