@@ -68,17 +68,17 @@ begin
     end
     else begin
         case(btn_2)
-        2'b00: begin
-            t_count <= 20'd0;
-        end
-        2'b01: begin
-            t_count <= 20'd764467;  // 옥타브3_도(130.81MHz)
+        2'b11: begin
+            t_count <= 20'd0;  // No sound
         end
         2'b10: begin
-            t_count <= 20'd681059;  // 옥타브3_레(146.83MHz)
+            t_count <= 20'd764467;  // 옥타브3_도(130.81Hz)
         end
-        2'b11: begin
-            t_count <= 20'd606759;  // 옥타브3_미(164.81MHz)
+        2'b01: begin
+            t_count <= 20'd681059;  // 옥타브3_레(146.83Hz)
+        end
+        2'b00: begin
+            t_count <= 20'd606759;  // 옥타브3_미(164.81Hz)
         end
         default t_count <= 20'd0;
         endcase
