@@ -16,3 +16,6 @@
 - If you press the key 1 and 2, then turn on the LED 1 & 2 and make a different sound
 - Two testbench files. (1) reset button testbench (2) key 1,2 testbench
 - Make build.sh and clean.sh for automation
+5) 05_burst // upload date : 2026-03-17
+- Alinx Artix-7 xc7a200tfbg484 board
+- Add 05_burst code
