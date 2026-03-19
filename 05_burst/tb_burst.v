@@ -19,7 +19,6 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module tb_burst();
     // Internal signal declarations
     reg clk_tb;
@@ -41,17 +40,27 @@ module tb_burst();
     );
     
     always #2.5 clk_tb = ~clk_tb;   // 5ns = 200MHz
+    
+    integer file;
     initial begin
         clk_tb = 1'd0;
-        rst_n = 1'd0;
+        rst_n = 1'b0;
         #1_000_000;    // 1ms
 
         // Simulation start
-        rst_n = 1;
+        rst_n = 1'b1;
 
+        file = $fopen("burst_results.txt", "w");
         #2_000_000_000;
+        $fclose(file);
         
+        $display("Simulation Finished and Data Saved.");
         $finish;
         // Simulation end
+    end
+    always @(posedge clk_tb) begin
+        if (rst_n == 1'b1) begin
+            $fdisplay(file, "%b %b", buz_o[1], buz_o[0]);
+        end
     end
 endmodule
