@@ -20,18 +20,21 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module burst(
-    input clk_p,        // 200MHz Positive clock
-    input clk_n,        // 200MHz Negative clock
+    input clk,
     input rst_n,
-    //input [31:0] delay_i,      // python input
+    input [31:0] delay_i,   // python input
+    input is_delay_i,       // python input
+    input [31:0] prt_t_i,   // python input
+    input is_prt_i,         // python input
     output [1:0] buz_o
     );
 
-    wire clk;  // buffer output
     reg [19:0] count_1 = 20'd0;   // 20bit counter
     reg [19:0] count_2 = 20'd0;   // 20bit counter
     reg buz_o_temp_0;
     reg buz_o_temp_1;
+    
+    reg [31:0] delay_count = 32'd0;   // python delay counter
 
     reg [31:0] freq_1 = 32'd20_000_000;     // buzzer 1 delay (0.1s)
     reg [31:0] freq_2 = 32'd2_000_000;     // buzzer 1 delay (0.01s)
@@ -44,12 +47,29 @@ module burst(
     reg [31:0] prt_t = 32'd1_000_000_000;   // PRT timer for buzzers (5s)
     reg [31:0] prt_cnt = 0;                 // count PRT timer
 
-     // Change 차동 클락 -> 단일 클락
-    IBUFDS clk_inst (
-        .O(clk),        // 내부 로직으로 들어가는 단일 클락
-        .I(clk_p),      // 외부에서 들어오는 P 클락
-        .IB(clk_n)      // 외부에서 들어오는 N 클락
-    );
+// Define delay input from python
+always @(posedge clk) begin
+    if (!rst_n) begin
+        delay_count <= 0;
+    end
+    else begin
+        if (is_delay_i) begin
+            delay_count <= delay_i; 
+        end
+        else if (delay_count > 0) begin
+            delay_count <= delay_count - 1;
+        end
+    end
+end
+
+always @(posedge clk) begin
+    if (!rst_n) begin
+        prt_t <= 32'd1_000_000_000; // 리셋 시 기본 5초로 초기화
+    end
+    else if (is_prt_i) begin
+        prt_t <= prt_t_i;           // 파이썬 명령이 들어오면 값 덮어쓰기!
+    end
+end
 
 // Define PRT for all buzzers
 always @(posedge clk) begin
@@ -75,12 +95,7 @@ begin
         freq_on_1 <= 0;
     end
     else begin
-        if (prt_cnt == 0) begin
-            beep_count_1 <= 3'd5; // burst 5 times for buzzer 1
-            freq_1_t <= 0;
-            freq_on_1 <= 1'b1;
-        end
-        else if (beep_count_1 > 0) begin  // progress burst for buzzer 1
+        if (beep_count_1 > 0) begin  // progress burst for buzzer 1
             if (freq_1_t >= freq_1) begin
                 freq_1_t <= 0;
                 freq_on_1 <= ~freq_on_1;
@@ -91,6 +106,11 @@ begin
             else begin
                 freq_1_t <= freq_1_t + 1;
             end
+        end
+        else if (prt_cnt == 0 && prt_cnt == 0) begin
+            beep_count_1 <= 3'd5; // burst 5 times for buzzer 1
+            freq_1_t <= 0;
+            freq_on_1 <= 1'b1;
         end
         else begin
             freq_on_1 <= 0;
@@ -108,12 +128,7 @@ begin
         freq_on_2 <= 0;
     end
     else begin
-        if (prt_cnt == 0) begin
-            beep_count_2 <= 4'd10; // burst 10 times for buzzer 2
-            freq_2_t <= 0;
-            freq_on_2 <= 1'b1;
-        end
-        else if (beep_count_2 > 0) begin  // progress burst for buzzer 2
+        if (beep_count_2 > 0) begin
             if (freq_2_t >= freq_2) begin
                 freq_2_t <= 0;
                 freq_on_2 <= ~freq_on_2;
@@ -124,6 +139,11 @@ begin
             else begin
                 freq_2_t <= freq_2_t + 1;
             end
+        end
+        else if (prt_cnt == 0) begin
+            beep_count_2 <= 4'd10; // burst 10 times for buzzer 2
+            freq_2_t <= 0;
+            freq_on_2 <= 1'b1;
         end
         else begin
             freq_on_2 <= 0;
@@ -138,18 +158,20 @@ begin
         count_1 <= 20'd0;
         buz_o_temp_0 <= 0;
     end
-    else if (freq_on_1 == 1'b1) begin
-        if(count_1 >= 20'd764467) begin // 옥타브3_도(130.81Hz)
-            buz_o_temp_0 <= ~buz_o_temp_0;
-            count_1 <= 20'd0;
+    else if (delay_count == 0) begin
+        if (freq_on_1 == 1'b1) begin
+            if(count_1 >= 20'd764467) begin // 옥타브3_도(130.81Hz)
+                buz_o_temp_0 <= ~buz_o_temp_0;
+                count_1 <= 20'd0;
+            end
+            else begin
+                count_1 <= count_1 + 20'd1;
+            end
         end
         else begin
-            count_1 <= count_1 + 20'd1;
+            buz_o_temp_0 <= 0;
+            count_1 <= 0;
         end
-    end
-    else begin
-        buz_o_temp_0 <= 0;
-        count_1 <= 0;
     end
 end
 
@@ -159,23 +181,25 @@ begin
         count_2 <= 20'd0;
         buz_o_temp_1 <= 0;
     end
-    else if (freq_on_2 == 1'b1) begin
-        if(count_2 >= 20'd681059) begin // 옥타브3_레(146.83Hz)
-            buz_o_temp_1 <= ~buz_o_temp_1;
-            count_2 <= 20'd0;
+    else begin
+        if (freq_on_2 == 1'b1) begin
+            if(count_2 >= 20'd681059) begin // 옥타브3_레(146.83Hz)
+                buz_o_temp_1 <= ~buz_o_temp_1;
+                count_2 <= 20'd0;
+            end
+            else begin
+                count_2 <= count_2 + 20'd1;
+            end
         end
         else begin
-            count_2 <= count_2 + 20'd1;
+            buz_o_temp_1 <= 0;
+            count_2 <= 0;
         end
-    end
-    else begin
-        buz_o_temp_1 <= 0;
-        count_2 <= 0;
     end
 end
 
 // Real connection part
-assign buz_o[0] = buz_o_temp_0;
+assign buz_o[0] = (delay_count > 0) ? 1'b0 : buz_o_temp_0;
 assign buz_o[1] = buz_o_temp_1;
 
 endmodule

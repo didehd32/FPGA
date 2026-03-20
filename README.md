@@ -16,8 +16,9 @@
 - If you press the key 1 and 2, then turn on the LED 1 & 2 and make a different sound
 - Two testbench files. (1) reset button testbench (2) key 1,2 testbench
 - Make build.sh and clean.sh for automation
-5) 05_burst // upload date : 2026-03-17 // Last update : 2026-03-19
+5) 05_burst // upload date : 2026-03-17 // Last update : 2026-03-20
 - Alinx Artix-7 xc7a200tfbg484 board
 - Make two signals (connected two buzzers), Same PRT 5s
 - (1) Burst duration time 1s, Freq 5Hz, 1 Cycle time 0.2s
 - (2) Burst duration time 0.2ms, Freq 50Hz, 1 Cycle time 0.02s
+- Added functionality to input “Delay” and “PRT”
